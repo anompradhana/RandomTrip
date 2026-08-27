@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -25,17 +25,25 @@ jobs:
         with:
           flutter-version: '3.29.2'
           channel: stable
+          cache: true
 
-      - name: Extract RandomTrip source
+      - name: Create Android platform
         run: |
-          unzip -q RandomTrip_v0.2_cloudbuild.zip -d randomtrip_source
-          cd randomtrip_source
-          flutter create --platforms=android --project-name randomtrip .
-          flutter pub get
-          flutter build apk --release
+          flutter create \
+            --platforms=android \
+            --org com.randomtrip \
+            --project-name randomtrip \
+            .
+
+      - name: Get packages
+        run: flutter pub get
+
+      - name: Build universal APK
+        run: flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: RandomTrip-release
-          path: randomtrip_source/build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
